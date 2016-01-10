@@ -77,6 +77,16 @@ func (b *BitSet) Count() uint {
 	return uint(popcountSlice(b.set))
 }
 
+func (b *BitSet) IsEqual(other *BitSet) bool {
+	for i, word := range b.set {
+		otherWord := other.set[i]
+		if word != otherWord {
+			return false
+		}
+	}
+	return true
+}
+
 func (b *BitSet) Contains(i uint) bool {
 	var mask uint64 = 1 << (i & (wordSize-1))
 	return (b.set[i >> log2WordSize] & mask) != 0
