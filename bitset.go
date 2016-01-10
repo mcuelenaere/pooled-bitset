@@ -51,10 +51,25 @@ func (b *BitSet) Xor(other *BitSet) *BitSet {
 	return result
 }
 
+// Is the length an exact multiple of word sizes?
+func (b *BitSet) isWordAligned() bool {
+	return b.length % wordSize == 0
+}
+
+// Clean last word by setting unused bits to 0
+func (b *BitSet) cleanLastWord() {
+	if !b.isWordAligned() {
+		// Mask for cleaning last word
+		const allBits uint64 = 0xffffffffffffffff
+		b.set[wordsNeeded(b.length) - 1] &= allBits >> (wordSize - b.length % wordSize)
+	}
+}
+
 func (b *BitSet) Not() *BitSet {
 	// TODO: verify other is from this pool
 	result := b.pool.Get()
 	notSlice(result.set, b.set)
+	result.cleanLastWord()
 	return result
 }
 
