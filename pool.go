@@ -5,11 +5,14 @@ import (
 )
 
 type BitSetPool struct {
-	pool sync.Pool
+	length uint
+	pool   sync.Pool
 }
 
 func NewFixedLengthPool(length uint) *BitSetPool {
-	p := &BitSetPool {}
+	p := &BitSetPool {
+		length: length,
+	}
 
 	p.pool = sync.Pool {
 		New: func() interface{} {
@@ -30,4 +33,8 @@ func (p *BitSetPool) Get() *BitSet {
 
 func (p *BitSetPool) Put(bitSet *BitSet) {
 	p.pool.Put(bitSet)
+}
+
+func (p *BitSetPool) BitSetLen() uint {
+	return p.length
 }
