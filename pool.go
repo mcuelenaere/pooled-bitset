@@ -5,21 +5,21 @@ import (
 )
 
 type BitSetPool struct {
-	length uint
-	pool   sync.Pool
+	capacity uint
+	pool     sync.Pool
 }
 
-func NewFixedLengthPool(length uint) *BitSetPool {
+func NewFixedCapacityPool(capacity uint) *BitSetPool {
 	p := &BitSetPool {
-		length: length,
+		capacity: capacity,
 	}
 
 	p.pool = sync.Pool {
 		New: func() interface{} {
 			return &BitSet {
 				pool: p,
-				length: length,
-				set: make([]uint64, wordsNeeded(length)),
+				capacity: capacity,
+				set: make([]uint64, wordsNeeded(capacity)),
 			}
 		},
 	}
@@ -27,14 +27,17 @@ func NewFixedLengthPool(length uint) *BitSetPool {
 	return p
 }
 
+// Get returns a BitSet from the pool (which could or could not be a reused instance)
 func (p *BitSetPool) Get() *BitSet {
 	return p.pool.Get().(*BitSet);
 }
 
+// Put gives back the given BitSet to the pool
 func (p *BitSetPool) Put(bitSet *BitSet) {
 	p.pool.Put(bitSet)
 }
 
-func (p *BitSetPool) BitSetLen() uint {
-	return p.length
+// BitSetCapacity returns the capacity of BitSets returned by this pool
+func (p *BitSetPool) BitSetCapacity() uint {
+	return p.capacity
 }

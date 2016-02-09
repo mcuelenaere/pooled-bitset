@@ -7,9 +7,9 @@ const wordSize = uint(64)
 const log2WordSize = uint(6)
 
 type BitSet struct {
-	pool   *BitSetPool
-	length uint
-	set    []uint64
+	pool     *BitSetPool
+	capacity uint
+	set      []uint64
 }
 
 // wordsNeeded calculates the number of words needed for i bits
@@ -25,11 +25,17 @@ func (b *BitSet) Release() {
 	b.pool.Put(b)
 }
 
-// Len returns the length of the BitSet in words
-func (b *BitSet) Len() uint {
-	return b.length
+// Cap returns the capacity of the BitSet in bits
+func (b *BitSet) Cap() uint {
+	return b.capacity
 }
 
+// Len returns the number of set bits
+func (b *BitSet) Len() uint {
+	return uint(popcountSlice(b.set))
+}
+
+// And returns a new BitSet containing all bits AND'ed with the given BitSet
 func (b *BitSet) And(other *BitSet) *BitSet {
 	// TODO: verify other is from this pool
 	result := other.Clone()
@@ -37,6 +43,7 @@ func (b *BitSet) And(other *BitSet) *BitSet {
 	return result
 }
 
+// Or returns a new BitSet containing all bits OR'ed with the given BitSet
 func (b *BitSet) Or(other *BitSet) *BitSet {
 	// TODO: verify other is from this pool
 	result := other.Clone()
@@ -44,6 +51,7 @@ func (b *BitSet) Or(other *BitSet) *BitSet {
 	return result
 }
 
+// Xor returns a new BitSet containing all bits XOR'ed with the given BitSet
 func (b *BitSet) Xor(other *BitSet) *BitSet {
 	// TODO: verify other is from this pool
 	result := other.Clone()
@@ -53,7 +61,7 @@ func (b *BitSet) Xor(other *BitSet) *BitSet {
 
 // Is the length an exact multiple of word sizes?
 func (b *BitSet) isWordAligned() bool {
-	return b.length % wordSize == 0
+	return b.capacity % wordSize == 0
 }
 
 // Clean last word by setting unused bits to 0
@@ -61,10 +69,11 @@ func (b *BitSet) cleanLastWord() {
 	if !b.isWordAligned() {
 		// Mask for cleaning last word
 		const allBits uint64 = 0xffffffffffffffff
-		b.set[wordsNeeded(b.length) - 1] &= allBits >> (wordSize - b.length % wordSize)
+		b.set[wordsNeeded(b.capacity) - 1] &= allBits >> (wordSize - b.capacity % wordSize)
 	}
 }
 
+// Not returns a new BitSet containing all bits NOT'ed with themselves
 func (b *BitSet) Not() *BitSet {
 	// TODO: verify other is from this pool
 	result := b.pool.Get()
@@ -73,11 +82,9 @@ func (b *BitSet) Not() *BitSet {
 	return result
 }
 
-func (b *BitSet) Count() uint {
-	return uint(popcountSlice(b.set))
-}
-
+// IsEqual returns true whether the given BitSet is equals to ourself
 func (b *BitSet) IsEqual(other *BitSet) bool {
+	// TODO: verify other is from this pool
 	for i, word := range b.set {
 		otherWord := other.set[i]
 		if word != otherWord {
@@ -87,19 +94,23 @@ func (b *BitSet) IsEqual(other *BitSet) bool {
 	return true
 }
 
+// Contains returns true when the given bit is set
 func (b *BitSet) Contains(i uint) bool {
 	var mask uint64 = 1 << (i & (wordSize-1))
 	return (b.set[i >> log2WordSize] & mask) != 0
 }
 
+// Flip inverts the bit at the given index
 func (b *BitSet) Flip(i uint) {
 	b.set[i >> log2WordSize] ^= 1 << (i & (wordSize - 1))
 }
 
+// Set sets the bit at the given index to 1
 func (b *BitSet) Set(i uint) {
 	b.set[i >> log2WordSize] |= 1 << (i & (wordSize - 1))
 }
 
+// Clear sets the bit at the given index to 0
 func (b *BitSet) Clear(i uint) {
 	b.set[i >> log2WordSize] &^= 1 << (i & (wordSize - 1))
 }
@@ -111,6 +122,7 @@ func (b *BitSet) ClearAll() {
 	}
 }
 
+// Clone creates a copy of the BitSet
 func (b *BitSet) Clone() *BitSet {
 	c := b.pool.Get()
 	copy(c.set, b.set)
@@ -150,6 +162,7 @@ func (i *Iterator) Next() bool {
 }
 
 func (b *BitSet) Bits() Iterator {
+	// TODO: convert this to a callback interface
 	return Iterator {
 		first: true,
 		bitSet: b,

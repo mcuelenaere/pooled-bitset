@@ -6,7 +6,7 @@ import (
 )
 
 func TestIterate(t *testing.T) {
-	pool := NewFixedLengthPool(1000)
+	pool := NewFixedCapacityPool(1000)
 
 	bs := pool.Get()
 	bs.Set(0)
@@ -50,7 +50,7 @@ func TestIterate(t *testing.T) {
 
 func BenchmarkIterate(b *testing.B) {
 	b.StopTimer()
-	pool := NewFixedLengthPool(10000)
+	pool := NewFixedCapacityPool(10000)
 	s := pool.Get()
 	for i := 0; i < 10000; i += 3 {
 		s.Set(uint(i))
@@ -67,7 +67,7 @@ func BenchmarkIterate(b *testing.B) {
 
 func BenchmarkSparseIterate(b *testing.B) {
 	b.StopTimer()
-	pool := NewFixedLengthPool(100000)
+	pool := NewFixedCapacityPool(100000)
 	s := pool.Get()
 	for i := 0; i < 100000; i += 30 {
 		s.Set(uint(i))
