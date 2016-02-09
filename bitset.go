@@ -8,7 +8,6 @@ const log2WordSize = uint(6)
 
 type BitSet struct {
 	pool     *BitSetPool
-	capacity uint
 	set      []uint64
 }
 
@@ -27,7 +26,7 @@ func (b *BitSet) Release() {
 
 // Cap returns the capacity of the BitSet in bits
 func (b *BitSet) Cap() uint {
-	return b.capacity
+	return b.pool.capacity
 }
 
 // Len returns the number of set bits
@@ -61,7 +60,7 @@ func (b *BitSet) Xor(other *BitSet) *BitSet {
 
 // Is the length an exact multiple of word sizes?
 func (b *BitSet) isWordAligned() bool {
-	return b.capacity % wordSize == 0
+	return b.Cap() % wordSize == 0
 }
 
 // Clean last word by setting unused bits to 0
@@ -69,7 +68,7 @@ func (b *BitSet) cleanLastWord() {
 	if !b.isWordAligned() {
 		// Mask for cleaning last word
 		const allBits uint64 = 0xffffffffffffffff
-		b.set[wordsNeeded(b.capacity) - 1] &= allBits >> (wordSize - b.capacity % wordSize)
+		b.set[wordsNeeded(b.Cap()) - 1] &= allBits >> (wordSize - b.Cap() % wordSize)
 	}
 }
 

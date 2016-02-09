@@ -18,7 +18,6 @@ func NewFixedCapacityPool(capacity uint) *BitSetPool {
 		New: func() interface{} {
 			return &BitSet {
 				pool: p,
-				capacity: capacity,
 				set: make([]uint64, wordsNeeded(capacity)),
 			}
 		},
