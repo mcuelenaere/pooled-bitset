@@ -1,3 +1,5 @@
+#include "textflag.h"
+
 TEXT ·hasPopCount(SB),NOSPLIT,$0
     MOVQ    $1, AX
     CPUID
