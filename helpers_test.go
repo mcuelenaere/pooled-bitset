@@ -10,7 +10,7 @@ import (
 var popCountSliceTestCases = []struct {
 	Input    []uint64
 	Expected uint64
-} {
+}{
 	{[]uint64{}, 0},
 	{[]uint64{0x1}, 1},
 	{[]uint64{0x2}, 1},
@@ -59,7 +59,7 @@ func BenchmarkPopCountSlice(b *testing.B) {
 var findFirstSetBitTestCases = []struct {
 	Input    uint64
 	Expected uint64
-} {
+}{
 	{0x1, 0},
 	{0x2, 1},
 	{0x44, 2},
@@ -106,7 +106,7 @@ var bitOpsSliceTestCases = []struct {
 	ExpectedAnd []uint64
 	ExpectedOr  []uint64
 	ExpectedXor []uint64
-} {
+}{
 	{[]uint64{}, []uint64{}, []uint64{}, []uint64{}, []uint64{}},
 	{[]uint64{0x1}, []uint64{0x0}, []uint64{0x0}, []uint64{0x1}, []uint64{0x1}},
 	{[]uint64{0x1, 0x1, 0x1, 0x1}, []uint64{0x0, 0x1, 0x0, 0x0}, []uint64{0x0, 0x1, 0x0, 0x0}, []uint64{0x1, 0x1, 0x1, 0x1}, []uint64{0x1, 0x0, 0x1, 0x1}},
@@ -139,13 +139,13 @@ func testBitOpSlice(t *testing.T, bitOpFunc func(dest, a, b []uint64), bitOp int
 }
 
 func TestAndSliceGeneric(t *testing.T) { testBitOpSlice(t, andSliceGeneric, OP_AND) }
-func TestAndSliceAsm(t *testing.T) { testBitOpSlice(t, andSlice, OP_AND) }
+func TestAndSliceAsm(t *testing.T)     { testBitOpSlice(t, andSlice, OP_AND) }
 
 func TestOrdSliceGeneric(t *testing.T) { testBitOpSlice(t, orSliceGeneric, OP_OR) }
-func TestOrdSliceAsm(t *testing.T) { testBitOpSlice(t, orSlice, OP_OR) }
+func TestOrdSliceAsm(t *testing.T)     { testBitOpSlice(t, orSlice, OP_OR) }
 
 func TestXorSliceGeneric(t *testing.T) { testBitOpSlice(t, xorSliceGeneric, OP_XOR) }
-func TestXorSliceAsm(t *testing.T) { testBitOpSlice(t, xorSlice, OP_XOR) }
+func TestXorSliceAsm(t *testing.T)     { testBitOpSlice(t, xorSlice, OP_XOR) }
 
 func benchmarkBitOp(b *testing.B, sliceLength int, bitOpFunc func(dest, a, b []uint64)) {
 	b.StopTimer()
@@ -169,54 +169,54 @@ func benchmarkBitOp(b *testing.B, sliceLength int, bitOpFunc func(dest, a, b []u
 }
 
 func BenchmarkAndSlice1Generic(b *testing.B) { benchmarkBitOp(b, 1, andSliceGeneric) }
-func BenchmarkAndSlice1(b *testing.B) { benchmarkBitOp(b, 1, andSlice) }
+func BenchmarkAndSlice1(b *testing.B)        { benchmarkBitOp(b, 1, andSlice) }
 
 func BenchmarkAndSlice10Generic(b *testing.B) { benchmarkBitOp(b, 10, andSliceGeneric) }
-func BenchmarkAndSlice10(b *testing.B) { benchmarkBitOp(b, 10, andSlice) }
+func BenchmarkAndSlice10(b *testing.B)        { benchmarkBitOp(b, 10, andSlice) }
 
 func BenchmarkAndSlice100Generic(b *testing.B) { benchmarkBitOp(b, 100, andSliceGeneric) }
-func BenchmarkAndSlice100(b *testing.B) { benchmarkBitOp(b, 100, andSlice) }
+func BenchmarkAndSlice100(b *testing.B)        { benchmarkBitOp(b, 100, andSlice) }
 
 func BenchmarkAndSlice1000Generic(b *testing.B) { benchmarkBitOp(b, 1000, andSliceGeneric) }
-func BenchmarkAndSlice1000(b *testing.B) { benchmarkBitOp(b, 1000, andSlice) }
+func BenchmarkAndSlice1000(b *testing.B)        { benchmarkBitOp(b, 1000, andSlice) }
 
 func BenchmarkAndSlice10000Generic(b *testing.B) { benchmarkBitOp(b, 10000, andSliceGeneric) }
-func BenchmarkAndSlice10000(b *testing.B) { benchmarkBitOp(b, 10000, andSlice) }
+func BenchmarkAndSlice10000(b *testing.B)        { benchmarkBitOp(b, 10000, andSlice) }
 
 func BenchmarkOrSlice1Generic(b *testing.B) { benchmarkBitOp(b, 1, orSliceGeneric) }
-func BenchmarkOrSlice1(b *testing.B) { benchmarkBitOp(b, 1, orSlice) }
+func BenchmarkOrSlice1(b *testing.B)        { benchmarkBitOp(b, 1, orSlice) }
 
 func BenchmarkOrSlice10Generic(b *testing.B) { benchmarkBitOp(b, 10, orSliceGeneric) }
-func BenchmarkOrSlice10(b *testing.B) { benchmarkBitOp(b, 10, orSlice) }
+func BenchmarkOrSlice10(b *testing.B)        { benchmarkBitOp(b, 10, orSlice) }
 
 func BenchmarkOrSlice100Generic(b *testing.B) { benchmarkBitOp(b, 100, orSliceGeneric) }
-func BenchmarkOrSlice100(b *testing.B) { benchmarkBitOp(b, 100, orSlice) }
+func BenchmarkOrSlice100(b *testing.B)        { benchmarkBitOp(b, 100, orSlice) }
 
 func BenchmarkOrSlice1000Generic(b *testing.B) { benchmarkBitOp(b, 1000, orSliceGeneric) }
-func BenchmarkOrSlice1000(b *testing.B) { benchmarkBitOp(b, 1000, orSlice) }
+func BenchmarkOrSlice1000(b *testing.B)        { benchmarkBitOp(b, 1000, orSlice) }
 
 func BenchmarkOrSlice10000Generic(b *testing.B) { benchmarkBitOp(b, 10000, orSliceGeneric) }
-func BenchmarkOrSlice10000(b *testing.B) { benchmarkBitOp(b, 10000, orSlice) }
+func BenchmarkOrSlice10000(b *testing.B)        { benchmarkBitOp(b, 10000, orSlice) }
 
 func BenchmarkXorSlice1Generic(b *testing.B) { benchmarkBitOp(b, 1, xorSliceGeneric) }
-func BenchmarkXorSlice1(b *testing.B) { benchmarkBitOp(b, 1, xorSlice) }
+func BenchmarkXorSlice1(b *testing.B)        { benchmarkBitOp(b, 1, xorSlice) }
 
 func BenchmarkXorSlice10Generic(b *testing.B) { benchmarkBitOp(b, 10, xorSliceGeneric) }
-func BenchmarkXorSlice10(b *testing.B) { benchmarkBitOp(b, 10, xorSlice) }
+func BenchmarkXorSlice10(b *testing.B)        { benchmarkBitOp(b, 10, xorSlice) }
 
 func BenchmarkXorSlice100Generic(b *testing.B) { benchmarkBitOp(b, 100, xorSliceGeneric) }
-func BenchmarkXorSlice100(b *testing.B) { benchmarkBitOp(b, 100, xorSlice) }
+func BenchmarkXorSlice100(b *testing.B)        { benchmarkBitOp(b, 100, xorSlice) }
 
 func BenchmarkXorSlice1000Generic(b *testing.B) { benchmarkBitOp(b, 1000, xorSliceGeneric) }
-func BenchmarkXorSlice1000(b *testing.B) { benchmarkBitOp(b, 1000, xorSlice) }
+func BenchmarkXorSlice1000(b *testing.B)        { benchmarkBitOp(b, 1000, xorSlice) }
 
 func BenchmarkXorSlice10000Generic(b *testing.B) { benchmarkBitOp(b, 10000, xorSliceGeneric) }
-func BenchmarkXorSlice10000(b *testing.B) { benchmarkBitOp(b, 10000, xorSlice) }
+func BenchmarkXorSlice10000(b *testing.B)        { benchmarkBitOp(b, 10000, xorSlice) }
 
 var notSliceTestCases = []struct {
 	Input    []uint64
 	Expected []uint64
-} {
+}{
 	{[]uint64{}, []uint64{}},
 	{[]uint64{0x1}, []uint64{0xfffffffffffffffe}},
 	{[]uint64{0x1, 0xffff, 0xffff0000, 0x0}, []uint64{0xfffffffffffffffe, 0xffffffffffff0000, 0xffffffff0000ffff, 0xffffffffffffffff}},
@@ -233,7 +233,7 @@ func testNotSlice(t *testing.T, bitOpFunc func(dest, src []uint64)) {
 }
 
 func TestNotSliceGeneric(t *testing.T) { testNotSlice(t, notSliceGeneric) }
-func TestNotSliceAsm(t *testing.T) { testNotSlice(t, notSlice) }
+func TestNotSliceAsm(t *testing.T)     { testNotSlice(t, notSlice) }
 
 func benchmarkNot(b *testing.B, sliceLength int, bitOpFunc func(dest, src []uint64)) {
 	b.StopTimer()
@@ -255,16 +255,16 @@ func benchmarkNot(b *testing.B, sliceLength int, bitOpFunc func(dest, src []uint
 }
 
 func BenchmarkNotSlice1Generic(b *testing.B) { benchmarkNot(b, 1, notSliceGeneric) }
-func BenchmarkNotSlice1(b *testing.B) { benchmarkNot(b, 1, notSlice) }
+func BenchmarkNotSlice1(b *testing.B)        { benchmarkNot(b, 1, notSlice) }
 
 func BenchmarkNotSlice10Generic(b *testing.B) { benchmarkNot(b, 10, notSliceGeneric) }
-func BenchmarkNotSlice10(b *testing.B) { benchmarkNot(b, 10, notSlice) }
+func BenchmarkNotSlice10(b *testing.B)        { benchmarkNot(b, 10, notSlice) }
 
 func BenchmarkNotSlice100Generic(b *testing.B) { benchmarkNot(b, 100, notSliceGeneric) }
-func BenchmarkNotSlice100(b *testing.B) { benchmarkNot(b, 100, notSlice) }
+func BenchmarkNotSlice100(b *testing.B)        { benchmarkNot(b, 100, notSlice) }
 
 func BenchmarkNotSlice1000Generic(b *testing.B) { benchmarkNot(b, 1000, notSliceGeneric) }
-func BenchmarkNotSlice1000(b *testing.B) { benchmarkNot(b, 1000, notSlice) }
+func BenchmarkNotSlice1000(b *testing.B)        { benchmarkNot(b, 1000, notSlice) }
 
 func BenchmarkNotSlice10000Generic(b *testing.B) { benchmarkNot(b, 10000, notSliceGeneric) }
-func BenchmarkNotSlice10000(b *testing.B) { benchmarkNot(b, 10000, notSlice) }
+func BenchmarkNotSlice10000(b *testing.B)        { benchmarkNot(b, 10000, notSlice) }

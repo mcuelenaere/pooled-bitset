@@ -1,12 +1,12 @@
 package pooled_bitset
 
 var (
-	popcountSlice func([]uint64) uint64
+	popcountSlice   func([]uint64) uint64
 	findFirstSetBit func(uint64) uint64
-	andSlice func(dest, a, b []uint64)
-	orSlice func(dest, a, b []uint64)
-	xorSlice func(dest, a, b []uint64)
-	notSlice func(dest, src []uint64)
+	andSlice        func(dest, a, b []uint64)
+	orSlice         func(dest, a, b []uint64)
+	xorSlice        func(dest, a, b []uint64)
+	notSlice        func(dest, src []uint64)
 )
 
 // bit population count, take from

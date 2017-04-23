@@ -7,8 +7,8 @@ const wordSize = uint(64)
 const log2WordSize = uint(6)
 
 type BitSet struct {
-	pool     *BitSetPool
-	set      []uint64
+	pool *BitSetPool
+	set  []uint64
 }
 
 // wordsNeeded calculates the number of words needed for i bits
@@ -60,7 +60,7 @@ func (b *BitSet) Xor(other *BitSet) *BitSet {
 
 // Is the length an exact multiple of word sizes?
 func (b *BitSet) isWordAligned() bool {
-	return b.Cap() % wordSize == 0
+	return b.Cap()%wordSize == 0
 }
 
 // Clean last word by setting unused bits to 0
@@ -68,7 +68,7 @@ func (b *BitSet) cleanLastWord() {
 	if !b.isWordAligned() {
 		// Mask for cleaning last word
 		const allBits uint64 = 0xffffffffffffffff
-		b.set[wordsNeeded(b.Cap()) - 1] &= allBits >> (wordSize - b.Cap() % wordSize)
+		b.set[wordsNeeded(b.Cap())-1] &= allBits >> (wordSize - b.Cap()%wordSize)
 	}
 }
 
@@ -95,23 +95,23 @@ func (b *BitSet) IsEqual(other *BitSet) bool {
 
 // Contains returns true when the given bit is set
 func (b *BitSet) Contains(i uint) bool {
-	var mask uint64 = 1 << (i & (wordSize-1))
-	return (b.set[i >> log2WordSize] & mask) != 0
+	var mask uint64 = 1 << (i & (wordSize - 1))
+	return (b.set[i>>log2WordSize] & mask) != 0
 }
 
 // Flip inverts the bit at the given index
 func (b *BitSet) Flip(i uint) {
-	b.set[i >> log2WordSize] ^= 1 << (i & (wordSize - 1))
+	b.set[i>>log2WordSize] ^= 1 << (i & (wordSize - 1))
 }
 
 // Set sets the bit at the given index to 1
 func (b *BitSet) Set(i uint) {
-	b.set[i >> log2WordSize] |= 1 << (i & (wordSize - 1))
+	b.set[i>>log2WordSize] |= 1 << (i & (wordSize - 1))
 }
 
 // Clear sets the bit at the given index to 0
 func (b *BitSet) Clear(i uint) {
-	b.set[i >> log2WordSize] &^= 1 << (i & (wordSize - 1))
+	b.set[i>>log2WordSize] &^= 1 << (i & (wordSize - 1))
 }
 
 // ClearAll clears the entire BitSet
@@ -136,7 +136,7 @@ type Iterator struct {
 }
 
 func (i *Iterator) Bit() uint {
-	return uint(i.setIdx) * wordSize + i.currentBit
+	return uint(i.setIdx)*wordSize + i.currentBit
 }
 
 func (i *Iterator) Next() bool {
@@ -145,7 +145,7 @@ func (i *Iterator) Next() bool {
 		currentValue = i.bitSet.set[i.setIdx]
 		i.first = false
 	} else {
-		currentValue = i.bitSet.set[i.setIdx] &^ (1 << (i.currentBit + 1) - 1)
+		currentValue = i.bitSet.set[i.setIdx] &^ (1<<(i.currentBit+1) - 1)
 	}
 
 	for currentValue == 0 {
@@ -162,8 +162,8 @@ func (i *Iterator) Next() bool {
 
 func (b *BitSet) Bits() Iterator {
 	// TODO: convert this to a callback interface
-	return Iterator {
-		first: true,
+	return Iterator{
+		first:  true,
 		bitSet: b,
 	}
 }

@@ -10,15 +10,15 @@ type BitSetPool struct {
 }
 
 func NewFixedCapacityPool(capacity uint) *BitSetPool {
-	p := &BitSetPool {
+	p := &BitSetPool{
 		capacity: capacity,
 	}
 
-	p.pool = sync.Pool {
+	p.pool = sync.Pool{
 		New: func() interface{} {
-			return &BitSet {
+			return &BitSet{
 				pool: p,
-				set: make([]uint64, wordsNeeded(capacity)),
+				set:  make([]uint64, wordsNeeded(capacity)),
 			}
 		},
 	}
@@ -28,7 +28,7 @@ func NewFixedCapacityPool(capacity uint) *BitSetPool {
 
 // Get returns a BitSet from the pool (which could or could not be a reused instance)
 func (p *BitSetPool) Get() *BitSet {
-	return p.pool.Get().(*BitSet);
+	return p.pool.Get().(*BitSet)
 }
 
 // Put gives back the given BitSet to the pool

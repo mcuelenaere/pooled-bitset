@@ -31,7 +31,6 @@ func TestIterate(t *testing.T) {
 		t.Errorf("%v was not expected value %f", data, expected)
 	}
 
-
 	bs.Set(10)
 	bs.Set(200)
 	data = make([]uint, 6)
