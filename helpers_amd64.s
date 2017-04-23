@@ -17,8 +17,8 @@ TEXT ·hasAvx(SB),NOSPLIT,$0
 TEXT ·popcountSliceAsm(SB),NOSPLIT,$0-32
     MOVQ    $0, AX      // var result = 0
     MOVQ    $0, BX      // var i = 0
-    MOVQ	s+0(FP), SI // &s
-    MOVQ	s+8(FP), CX // len(s)
+    MOVQ	s_base+0(FP), SI // &s
+    MOVQ	s_len+8(FP), CX // len(s)
 
     TESTQ	CX, CX      // if (len(s) == 0)
     JZ		end         // goto end
@@ -41,10 +41,10 @@ TEXT ·findFirstSetBitAsm(SB),NOSPLIT,$0-16
     RET
 
 #define bitOpSliceAvx(BITOP, AVX_BO)                                          \
-    MOVQ    dest+0(FP), AX /* &dest */                                        \
-    MOVQ    a+24(FP), BX   /* &a */                                           \
-    MOVQ    a+32(FP), CX   /* len(a) */                                       \
-    MOVQ    b+48(FP), DX   /* &b */                                           \
+    MOVQ    dest_base+0(FP), AX /* &dest */                                   \
+    MOVQ    a_base+24(FP), BX   /* &a */                                      \
+    MOVQ    a_len+32(FP), CX   /* len(a) */                                   \
+    MOVQ    b_base+48(FP), DX   /* &b */                                      \
     MOVQ    $0, DI         /* var i = 0 */                                    \
     MOVQ    CX, R8         /* var j = len(a) */                               \
                                                                               \
@@ -171,9 +171,9 @@ TEXT ·xorSliceSse2(SB),NOSPLIT,$0-72
 
 // TODO: create AVX version of this one
 TEXT ·notSliceSse2(SB),NOSPLIT,$0-48
-    MOVQ    dest+0(FP), AX                                          // &dest
-    MOVQ    a+24(FP), BX                                            // &src
-    MOVQ    a+32(FP), CX                                            // len(src)
+    MOVQ    dest_base+0(FP), AX                                     // &dest
+    MOVQ    src_base+24(FP), BX                                     // &src
+    MOVQ    src_len+32(FP), CX                                      // len(src)
     MOVQ    $0, DI                                                  // var i = 0
     MOVQ    CX, R8                                                  // var j = len(src)
 

@@ -28,7 +28,7 @@ func TestIterate(t *testing.T) {
 
 	expected := []uint{0, 1, 50, 100}
 	if !reflect.DeepEqual(data, expected) {
-		t.Errorf("%v was not expected value %f", data, expected)
+		t.Errorf("%v was not expected value %v", data, expected)
 	}
 
 	bs.Set(10)
@@ -43,7 +43,7 @@ func TestIterate(t *testing.T) {
 
 	expected = []uint{0, 1, 10, 50, 100, 200}
 	if !reflect.DeepEqual(data, expected) {
-		t.Errorf("%v was not expected value %f", data, expected)
+		t.Errorf("%v was not expected value %v", data, expected)
 	}
 }
 
