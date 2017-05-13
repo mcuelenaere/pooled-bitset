@@ -3,6 +3,7 @@
 *Go library to manipulate a pool of bitsets*
 
 [![Master Build Status](https://secure.travis-ci.org/mcuelenaere/pooled-bitset.png?branch=master)](https://travis-ci.org/mcuelenaere/pooled-bitset?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/mcuelenaere/pooled-bitset/badge.svg?branch=master)](https://coveralls.io/github/mcuelenaere/pooled-bitset?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/mcuelenaere/pooled-bitset)](https://goreportcard.com/report/github.com/mcuelenaere/pooled-bitset)
 [![GoDoc](https://godoc.org/github.com/mcuelenaere/pooled-bitset?status.svg)](http://godoc.org/github.com/mcuelenaere/pooled-bitset)
 
