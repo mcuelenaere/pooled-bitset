@@ -23,3 +23,21 @@ func TestPoolPut(t *testing.T) {
 		t.Fatal("Got a different BitSet instance from pool when previous one was released")
 	}
 }
+
+func TestPoolGetReturnsZeroedBitSet(t *testing.T) {
+	pool := NewFixedCapacityPool(64)
+
+	// allocate bitset, fill it and return it back to the pool
+	bs := pool.Get()
+	for i := uint(0); i < 64; i++ {
+		bs.Set(i)
+	}
+	bs.Release()
+
+	// allocate another bitset and check if it's zeroed out
+	bs = pool.Get()
+	if bs.Len() > 0 {
+		t.Fatalf("Bitset is %v, expected it to be 0!", bs.Len())
+	}
+	bs.Release()
+}

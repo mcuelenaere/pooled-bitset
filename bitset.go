@@ -75,7 +75,7 @@ func (b *BitSet) cleanLastWord() {
 // Not returns a new BitSet containing all bits NOT'ed with themselves
 func (b *BitSet) Not() *BitSet {
 	// TODO: verify other is from this pool
-	result := b.pool.Get()
+	result := b.pool.fastGet()
 	notSlice(result.set, b.set)
 	result.cleanLastWord()
 	return result
@@ -123,7 +123,7 @@ func (b *BitSet) ClearAll() {
 
 // Clone creates a copy of the BitSet
 func (b *BitSet) Clone() *BitSet {
-	c := b.pool.Get()
+	c := b.pool.fastGet()
 	copy(c.set, b.set)
 	return c
 }
