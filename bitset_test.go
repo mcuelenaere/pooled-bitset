@@ -80,3 +80,33 @@ func BenchmarkSparseIterate(b *testing.B) {
 		}
 	}
 }
+
+func assertPanic(t *testing.T, f func()) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("The code did not panic")
+		}
+	}()
+	f()
+}
+
+func TestOperationsOnBitSetsOfDifferentSizes(t *testing.T) {
+	pool1 := NewFixedCapacityPool(64)
+	pool2 := NewFixedCapacityPool(32)
+
+	bs1 := pool1.Get()
+	bs2 := pool2.Get()
+
+	if (bs1.IsEqual(bs2) || bs2.IsEqual(bs1)) {
+		t.Error("BitSets aren't supposed to be equal")
+	}
+
+	assertPanic(t, func() { bs1.And(bs2) })
+	assertPanic(t, func() { bs2.And(bs1) })
+
+	assertPanic(t, func() { bs1.Or(bs2) })
+	assertPanic(t, func() { bs2.Or(bs1) })
+
+	assertPanic(t, func() { bs1.Xor(bs2) })
+	assertPanic(t, func() { bs2.Xor(bs1) })
+}

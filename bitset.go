@@ -34,9 +34,16 @@ func (b *BitSet) Len() uint {
 	return uint(popcountSlice(b.set))
 }
 
+func panicIfOfDifferentCapacity(a, b *BitSet) {
+	if (a.pool.capacity != b.pool.capacity) {
+		panic("Expected given BitSet to have the same capacity")
+	}
+}
+
 // And returns a new BitSet containing all bits AND'ed with the given BitSet
 func (b *BitSet) And(other *BitSet) *BitSet {
-	// TODO: verify other is from this pool
+	panicIfOfDifferentCapacity(b, other)
+
 	result := other.Clone()
 	andSlice(result.set, b.set, other.set)
 	return result
@@ -44,7 +51,8 @@ func (b *BitSet) And(other *BitSet) *BitSet {
 
 // Or returns a new BitSet containing all bits OR'ed with the given BitSet
 func (b *BitSet) Or(other *BitSet) *BitSet {
-	// TODO: verify other is from this pool
+	panicIfOfDifferentCapacity(b, other)
+
 	result := other.Clone()
 	orSlice(result.set, b.set, other.set)
 	return result
@@ -52,7 +60,8 @@ func (b *BitSet) Or(other *BitSet) *BitSet {
 
 // Xor returns a new BitSet containing all bits XOR'ed with the given BitSet
 func (b *BitSet) Xor(other *BitSet) *BitSet {
-	// TODO: verify other is from this pool
+	panicIfOfDifferentCapacity(b, other)
+
 	result := other.Clone()
 	xorSlice(result.set, b.set, other.set)
 	return result
@@ -74,7 +83,6 @@ func (b *BitSet) cleanLastWord() {
 
 // Not returns a new BitSet containing all bits NOT'ed with themselves
 func (b *BitSet) Not() *BitSet {
-	// TODO: verify other is from this pool
 	result := b.pool.fastGet()
 	notSlice(result.set, b.set)
 	result.cleanLastWord()
@@ -83,7 +91,10 @@ func (b *BitSet) Not() *BitSet {
 
 // IsEqual returns true whether the given BitSet is equals to ourself
 func (b *BitSet) IsEqual(other *BitSet) bool {
-	// TODO: verify other is from this pool
+	if (other.pool.capacity != b.pool.capacity) {
+		return false
+	}
+
 	for i, word := range b.set {
 		otherWord := other.set[i]
 		if word != otherWord {
