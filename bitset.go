@@ -171,10 +171,23 @@ func (i *Iterator) Next() bool {
 	return true
 }
 
-func (b *BitSet) Bits() Iterator {
-	// TODO: convert this to a callback interface
+// Iterator allows iterating over all the set bits
+func (b *BitSet) Iterator() Iterator {
 	return Iterator{
 		first:  true,
 		bitSet: b,
+	}
+}
+
+// Walk calls the given callback for each set bit
+func (b* BitSet) Walk(cb func(uint)) {
+	for setIdx := 0; setIdx < len(b.set); setIdx++ {
+		currentValue := b.set[setIdx]
+		currentOffset := uint(setIdx) * wordSize
+		for currentValue != 0 {
+			currentBit := uint(findFirstSetBit(currentValue))
+			cb(currentOffset + currentBit)
+			currentValue ^= (1 << currentBit)
+		}
 	}
 }

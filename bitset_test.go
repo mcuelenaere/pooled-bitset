@@ -16,7 +16,7 @@ func TestIterate(t *testing.T) {
 
 	data := make([]uint, 4)
 	c := 0
-	it := bs.Bits()
+	it := bs.Iterator()
 	for it.Next() {
 		if c >= cap(data) {
 			t.Fatalf("Iterator has more than %d entries (so far: %v)", cap(data), data)
@@ -35,7 +35,7 @@ func TestIterate(t *testing.T) {
 	bs.Set(200)
 	data = make([]uint, 6)
 	c = 0
-	it = bs.Bits()
+	it = bs.Iterator()
 	for it.Next() {
 		data[c] = it.Bit()
 		c++
@@ -57,9 +57,10 @@ func BenchmarkIterate(b *testing.B) {
 	b.StartTimer()
 
 	for j := 0; j < b.N; j++ {
-		it := s.Bits()
+		c := uint(0)
+		it := s.Iterator()
 		for it.Next() {
-			_ = it.Bit()
+			c += it.Bit()
 		}
 	}
 }
@@ -74,9 +75,10 @@ func BenchmarkSparseIterate(b *testing.B) {
 	b.StartTimer()
 
 	for j := 0; j < b.N; j++ {
-		it := s.Bits()
+		c := uint(0)
+		it := s.Iterator()
 		for it.Next() {
-			_ = it.Bit()
+			c += it.Bit()
 		}
 	}
 }
@@ -109,4 +111,78 @@ func TestOperationsOnBitSetsOfDifferentSizes(t *testing.T) {
 
 	assertPanic(t, func() { bs1.Xor(bs2) })
 	assertPanic(t, func() { bs2.Xor(bs1) })
+}
+
+func TestIterateUsingCallback(t *testing.T) {
+	pool := NewFixedCapacityPool(1000)
+
+	bs := pool.Get()
+	bs.Set(0)
+	bs.Set(100)
+	bs.Set(50)
+	bs.Set(1)
+
+	data := make([]uint, 4)
+	c := 0
+	bs.Walk(func(i uint) {
+		if c >= cap(data) {
+			t.Fatalf("Iterator has more than %d entries (so far: %v)", cap(data), data)
+		}
+
+		data[c] = i
+		c++
+	})
+
+	expected := []uint{0, 1, 50, 100}
+	if !reflect.DeepEqual(data, expected) {
+		t.Errorf("%v was not expected value %v", data, expected)
+	}
+
+	bs.Set(10)
+	bs.Set(200)
+	data = make([]uint, 6)
+	c = 0
+	bs.Walk(func(i uint) {
+		data[c] = i
+		c++
+	})
+
+	expected = []uint{0, 1, 10, 50, 100, 200}
+	if !reflect.DeepEqual(data, expected) {
+		t.Errorf("%v was not expected value %v", data, expected)
+	}
+}
+
+func BenchmarkIterateUsingCallback(b *testing.B) {
+	b.StopTimer()
+	pool := NewFixedCapacityPool(10000)
+	s := pool.Get()
+	for i := 0; i < 10000; i += 3 {
+		s.Set(uint(i))
+	}
+	b.StartTimer()
+
+	for j := 0; j < b.N; j++ {
+		c := uint(0)
+		s.Walk(func (i uint) {
+			c += i
+		})
+	}
+}
+
+func BenchmarkSparseIterateUsingCallback(b *testing.B) {
+	b.StopTimer()
+	pool := NewFixedCapacityPool(100000)
+	s := pool.Get()
+	for i := 0; i < 100000; i += 30 {
+		s.Set(uint(i))
+	}
+	b.StartTimer()
+
+	for j := 0; j < b.N; j++ {
+		c := uint(0)
+		s.Walk(func (i uint) {
+			c += i
+		})
+	}
 }
