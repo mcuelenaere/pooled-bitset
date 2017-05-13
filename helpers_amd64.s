@@ -26,8 +26,7 @@ TEXT ·popcountSliceAsm(SB),NOSPLIT,$0-32
     JZ		end         // goto end
 
 loop:
-    // POPCNTQ (SI)(BX*8), DX
-    BYTE $0xF3; BYTE $0x48; BYTE $0x0F; BYTE $0xB8; BYTE $0x14; BYTE $0xDE
+    POPCNTQ (SI)(BX*8), DX
     ADDQ	DX, AX      // result += tmp
     INCQ    BX          // i++
     CMPQ    BX, CX      // if (i != len(s))
@@ -53,30 +52,18 @@ TEXT ·findFirstSetBitAsm(SB),NOSPLIT,$0-16
 _128ByteLoop:                                                                 \
     CMPQ    R8, $16        /* if (j < 16) */                                  \
     JB      _64BitLoop     /* goto _64BitLoop */                              \
-    /* VMOVDQU   (BX)(DI*8), Y0 */                                            \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x6F; BYTE $0x04; BYTE $0xFB                \
-    /* VMOVDQU   8(BX)(DI*8), Y1 */                                           \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x6F; BYTE $0x4C; BYTE $0xFB; BYTE $0x08    \
-    /* VMOVDQU   16(BX)(DI*8), Y2 */                                          \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x6F; BYTE $0x54; BYTE $0xFB; BYTE $0x10    \
-    /* VMOVDQU   24(BX)(DI*8), Y3 */                                          \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x6F; BYTE $0x5C; BYTE $0xFB; BYTE $0x18    \
-    /* AVX_BO (DX)(DI*8), Y0 */                                               \
-    BYTE $0xC5; BYTE $0xFD; BYTE AVX_BO; BYTE $0x04; BYTE $0xFA               \
-    /* AVX_BO 8(DX)(DI*8), Y1 */                                              \
-    BYTE $0xC5; BYTE $0xF5; BYTE AVX_BO; BYTE $0x4C; BYTE $0xFA; BYTE $0x08   \
-    /* AVX_BO 16(DX)(DI*8), Y2 */                                             \
-    BYTE $0xC5; BYTE $0xED; BYTE AVX_BO; BYTE $0x54; BYTE $0xFA; BYTE $0x10   \
-    /* AVX_BO 24(DX)(DI*8), Y3 */                                             \
-    BYTE $0xC5; BYTE $0xE5; BYTE AVX_BO; BYTE $0x5C; BYTE $0xFA; BYTE $0x18   \
-    /* VMOVDQU   Y0, (AX)(DI*8) */                                            \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x7F; BYTE $0x04; BYTE $0xF8                \
-    /* VMOVDQU   Y1, 8(AX)(DI*8) */                                           \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x7F; BYTE $0x4C; BYTE $0xF8; BYTE $0x08    \
-    /* VMOVDQU   Y2, 16(AX)(DI*8) */                                          \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x7F; BYTE $0x54; BYTE $0xF8; BYTE $0x10    \
-    /* VMOVDQU   Y3, 24(AX)(DI*8) */                                          \
-    BYTE $0xC5; BYTE $0xFE; BYTE $0x7F; BYTE $0x5C; BYTE $0xF8; BYTE $0x18    \
+    VMOVDQU (BX)(DI*8),   Y0                                                  \
+    VMOVDQU 8(BX)(DI*8),  Y1                                                  \
+    VMOVDQU 16(BX)(DI*8), Y2                                                  \
+    VMOVDQU 24(BX)(DI*8), Y3                                                  \
+    AVX_BO  (DX)(DI*8),   Y0, Y0                                              \
+    AVX_BO  8(DX)(DI*8),  Y1, Y1                                              \
+    AVX_BO  16(DX)(DI*8), Y2, Y2                                              \
+    AVX_BO  24(DX)(DI*8), Y3, Y3                                              \
+    VMOVDQU Y0, (AX)(DI*8)                                                    \
+    VMOVDQU Y1, 8(AX)(DI*8)                                                   \
+    VMOVDQU Y2, 16(AX)(DI*8)                                                  \
+    VMOVDQU Y3, 24(AX)(DI*8)                                                  \
     ADDQ    $16, DI         /* i += 16 */                                     \
     SUBQ    $16, R8         /* j -= 16 */                                     \
     CMPQ    DI, CX          /* if (i != len(a)) */                            \
@@ -154,19 +141,19 @@ end:                                                                          \
     RET
 
 TEXT ·andSliceAvx(SB),NOSPLIT,$0-72
-    bitOpSliceAvx(ANDQ, $0x54)
+    bitOpSliceAvx(ANDQ, VPAND)
 
 TEXT ·andSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(ANDQ, ANDPS)
 
 TEXT ·orSliceAvx(SB),NOSPLIT,$0-72
-    bitOpSliceAvx(ORQ, $0x56)
+    bitOpSliceAvx(ORQ, VPOR)
 
 TEXT ·orSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(ORQ, ORPS)
 
 TEXT ·xorSliceAvx(SB),NOSPLIT,$0-72
-    bitOpSliceAvx(XORQ, $0x57)
+    bitOpSliceAvx(XORQ, VPXOR)
 
 TEXT ·xorSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(XORQ, XORPS)
