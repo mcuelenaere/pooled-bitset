@@ -89,7 +89,7 @@ func (b *BitSet) Not() *BitSet {
 	return result
 }
 
-// IsEqual returns true whether the given BitSet is equals to ourself
+// IsEqual returns true whether the given BitSet is equal to ourselves
 func (b *BitSet) IsEqual(other *BitSet) bool {
 	if (other.pool.capacity != b.pool.capacity) {
 		return false
@@ -146,10 +146,12 @@ type Iterator struct {
 	bitSet     *BitSet
 }
 
+// Bit returns the index of the bit that the iterator is currently looking at
 func (i *Iterator) Bit() uint {
 	return uint(i.setIdx)*wordSize + i.currentBit
 }
 
+// Next moves the iterator's position to the next set bit or returns false upon reaching the end
 func (i *Iterator) Next() bool {
 	var currentValue uint64
 	if i.first {

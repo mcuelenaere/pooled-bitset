@@ -9,6 +9,7 @@ type BitSetPool struct {
 	pool     sync.Pool
 }
 
+// NewFixedCapacityPool creates a pool, returning BitSet's of a fixed capacity
 func NewFixedCapacityPool(capacity uint) *BitSetPool {
 	p := &BitSetPool{
 		capacity: capacity,
@@ -30,7 +31,7 @@ func (p *BitSetPool) fastGet() *BitSet {
 	return p.pool.Get().(*BitSet)
 }
 
-// Get returns a BitSet from the pool (which could or could not be a reused instance)
+// Get returns an empty BitSet from the pool
 func (p *BitSetPool) Get() *BitSet {
 	bs := p.fastGet()
 	bs.ClearAll()
