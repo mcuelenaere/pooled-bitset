@@ -42,17 +42,30 @@ func TestPopCountSlice(t *testing.T) {
 
 // this is necessary because otherwise the inliner would unfairly give the non-assembly function an advantage
 var indirectPopCountSliceGeneric = popcountSliceGeneric
-var uint64Slice = []uint64{0x1, 0xFFFFFFFFFFFFFFFF, 0x12345678}
+
+func generatePopCountSlice() []uint64 {
+	slice := make([]uint64, 8192*10)
+	for n := 0; n < len(slice); n++ {
+		slice[n] = uint64(n)
+	}
+	return slice
+}
 
 func BenchmarkPopCountSliceGeneric(b *testing.B) {
+	slice := generatePopCountSlice()
+
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		indirectPopCountSliceGeneric(uint64Slice)
+		indirectPopCountSliceGeneric(slice)
 	}
 }
 
 func BenchmarkPopCountSlice(b *testing.B) {
+	slice := generatePopCountSlice()
+
+	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		popcountSlice(uint64Slice)
+		popcountSlice(slice)
 	}
 }
 
