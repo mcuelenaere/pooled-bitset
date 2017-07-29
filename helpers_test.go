@@ -12,8 +12,9 @@ import (
 // helper functions
 
 func getFunctionName(function interface{}) string {
-	fn := runtime.FuncForPC(reflect.ValueOf(function).Pointer())
-	return strings.Split(fn.Name(), ".")[1]
+	fnName := runtime.FuncForPC(reflect.ValueOf(function).Pointer()).Name()
+	idx := strings.LastIndex(fnName, ".")
+	return fnName[idx+1:]
 }
 
 func generateSliceWithRandomData(sliceLength int) []uint64 {
