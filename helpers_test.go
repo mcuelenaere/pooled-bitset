@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// helper functions
+
 func getFunctionName(function interface{}) string {
 	fn := runtime.FuncForPC(reflect.ValueOf(function).Pointer())
 	return strings.Split(fn.Name(), ".")[1]
@@ -18,6 +20,15 @@ func generateSliceWithRandomData(sliceLength int) []uint64 {
 	output := make([]uint64, sliceLength)
 	for i := 0; i < sliceLength; i++ {
 		output[i] = uint64(rand.Uint32()) | (uint64(rand.Uint32()) << 32)
+	}
+	return output
+}
+
+// helper function
+func repeatUint64(x uint64, n int) []uint64 {
+	output := make([]uint64, n)
+	for i := 0; i < n; i++ {
+		output[i] = x
 	}
 	return output
 }
@@ -115,6 +126,8 @@ func TestBitOpSlice(t *testing.T) {
 		{[]uint64{}, []uint64{}, map[string][]uint64{"AND": []uint64{}, "OR": []uint64{}, "XOR": []uint64{}}},
 		{[]uint64{0x1}, []uint64{0x0}, map[string][]uint64{"AND": []uint64{0x0}, "OR": []uint64{0x1}, "XOR": []uint64{0x1}}},
 		{[]uint64{0x1, 0x1, 0x1, 0x1}, []uint64{0x0, 0x1, 0x0, 0x0}, map[string][]uint64{"AND": []uint64{0x0, 0x1, 0x0, 0x0}, "OR": []uint64{0x1, 0x1, 0x1, 0x1}, "XOR": []uint64{0x1, 0x0, 0x1, 0x1}}},
+		{repeatUint64(0x1, 100), repeatUint64(0x0, 100), map[string][]uint64{"AND": repeatUint64(0x0, 100), "OR": repeatUint64(0x1, 100), "XOR": repeatUint64(0x1, 100)}},
+		{repeatUint64(0x1, 1000), repeatUint64(0x0, 1000), map[string][]uint64{"AND": repeatUint64(0x0, 1000), "OR": repeatUint64(0x1, 1000), "XOR": repeatUint64(0x1, 1000)}},
 	}
 
 	for _, configuration := range configurations {
@@ -174,6 +187,9 @@ func TestNotSlice(t *testing.T) {
 		{[]uint64{}, []uint64{}},
 		{[]uint64{0x1}, []uint64{0xfffffffffffffffe}},
 		{[]uint64{0x1, 0xffff, 0xffff0000, 0x0}, []uint64{0xfffffffffffffffe, 0xffffffffffff0000, 0xffffffff0000ffff, 0xffffffffffffffff}},
+		{repeatUint64(0x0, 100), repeatUint64(0xffffffffffffffff, 100)},
+		{repeatUint64(0x1, 100), repeatUint64(0xfffffffffffffffe, 100)},
+		{repeatUint64(0x1, 1000), repeatUint64(0xfffffffffffffffe, 1000)},
 	}
 
 	for _, notSliceFn := range notSliceVersions {
