@@ -41,6 +41,18 @@ TEXT ·findFirstSetBitAsm(SB),NOSPLIT,$0-16
     MOVQ	AX, ret+8(FP)
     RET
 
+#define bitOpSliceGeneric(BITOP)                                              \
+_1:                                                                           \
+    CMPQ    DI, CX          /* if (i == len(a)) */                            \
+    JEQ     _end            /* goto _end */                                   \
+    MOVQ    (BX)(DI*8), SI  /* tmp := a[i] */                                 \
+    BITOP   (DX)(DI*8), SI  /* tmp = bitop(tmp, b[i]) */                      \
+    MOVQ    SI, (AX)(DI*8)  /* dest[i] = tmp */                               \
+    INCQ    DI              /* i++ */                                         \
+    JMP     _1              /* goto _1 */                                     \
+_end:                                                                         \
+    RET
+
 #define bitOpSliceAvx(BITOP, AVX_BO)                                          \
     MOVQ    dest_base+0(FP), AX /* &dest */                                   \
     MOVQ    a_base+24(FP), BX   /* &a */                                      \
@@ -53,32 +65,24 @@ _128ByteLoop:                                                                 \
     CMPQ    R8, $16        /* if (j < 16) */                                  \
     JB      _64BitLoop     /* goto _64BitLoop */                              \
     VMOVDQU (BX)(DI*8),   Y0                                                  \
-    VMOVDQU 8(BX)(DI*8),  Y1                                                  \
-    VMOVDQU 16(BX)(DI*8), Y2                                                  \
-    VMOVDQU 24(BX)(DI*8), Y3                                                  \
+    VMOVDQU 32(BX)(DI*8), Y1                                                  \
+    VMOVDQU 64(BX)(DI*8), Y2                                                  \
+    VMOVDQU 96(BX)(DI*8), Y3                                                  \
     AVX_BO  (DX)(DI*8),   Y0, Y0                                              \
-    AVX_BO  8(DX)(DI*8),  Y1, Y1                                              \
-    AVX_BO  16(DX)(DI*8), Y2, Y2                                              \
-    AVX_BO  24(DX)(DI*8), Y3, Y3                                              \
+    AVX_BO  32(DX)(DI*8), Y1, Y1                                              \
+    AVX_BO  64(DX)(DI*8), Y2, Y2                                              \
+    AVX_BO  96(DX)(DI*8), Y3, Y3                                              \
     VMOVDQU Y0, (AX)(DI*8)                                                    \
-    VMOVDQU Y1, 8(AX)(DI*8)                                                   \
-    VMOVDQU Y2, 16(AX)(DI*8)                                                  \
-    VMOVDQU Y3, 24(AX)(DI*8)                                                  \
+    VMOVDQU Y1, 32(AX)(DI*8)                                                  \
+    VMOVDQU Y2, 64(AX)(DI*8)                                                  \
+    VMOVDQU Y3, 96(AX)(DI*8)                                                  \
     ADDQ    $16, DI         /* i += 16 */                                     \
     SUBQ    $16, R8         /* j -= 16 */                                     \
     CMPQ    DI, CX          /* if (i != len(a)) */                            \
     JNE     _128ByteLoop    /* goto _128ByteLoop */                           \
                                                                               \
 _64BitLoop:                                                                   \
-    CMPQ    DI, CX          /* if (i == len(a)) */                            \
-    JEQ     _end            /* goto _end */                                   \
-    MOVQ    (BX)(DI*8), SI  /* tmp := a[i] */                                 \
-    BITOP   (DX)(DI*8), SI  /* tmp = bitop(tmp, b[i]) */                      \
-    MOVQ    SI, (AX)(DI*8)  /* dest[i] = tmp */                               \
-    INCQ    DI              /* i++ */                                         \
-    JMP     _64BitLoop      /* goto _64BitLoop */                             \
-_end:                                                                         \
-    RET
+    bitOpSliceGeneric(BITOP)
 
 #define bitOpSliceSse2(BITOP, SSE_BO)                                         \
     MOVQ    dest+0(FP), AX /* &dest */                                        \
@@ -92,21 +96,21 @@ _128ByteLoop:                                                                 \
     CMPQ    R8, $16        /* if (j < 16) */                                  \
     JB      _64BitLoop     /* goto _64BitLoop */                              \
     MOVOU   (BX)(DI*8),   X0                                                  \
-    MOVOU   8(BX)(DI*8),  X1                                                  \
-    MOVOU   16(BX)(DI*8), X2                                                  \
-    MOVOU   24(BX)(DI*8), X3                                                  \
-    MOVOU   32(BX)(DI*8), X4                                                  \
-    MOVOU   40(BX)(DI*8), X5                                                  \
-    MOVOU   48(BX)(DI*8), X6                                                  \
-    MOVOU   56(BX)(DI*8), X7                                                  \
+    MOVOU   16(BX)(DI*8), X1                                                  \
+    MOVOU   32(BX)(DI*8), X2                                                  \
+    MOVOU   48(BX)(DI*8), X3                                                  \
+    MOVOU   64(BX)(DI*8), X4                                                  \
+    MOVOU   80(BX)(DI*8), X5                                                  \
+    MOVOU   96(BX)(DI*8), X6                                                  \
+    MOVOU   112(BX)(DI*8), X7                                                 \
     MOVOU   (DX)(DI*8),   X8                                                  \
-    MOVOU   8(DX)(DI*8),  X9                                                  \
-    MOVOU   16(DX)(DI*8), X10                                                 \
-    MOVOU   24(DX)(DI*8), X11                                                 \
-    MOVOU   32(DX)(DI*8), X12                                                 \
-    MOVOU   40(DX)(DI*8), X13                                                 \
-    MOVOU   48(DX)(DI*8), X14                                                 \
-    MOVOU   56(DX)(DI*8), X15                                                 \
+    MOVOU   16(DX)(DI*8), X9                                                  \
+    MOVOU   32(DX)(DI*8), X10                                                 \
+    MOVOU   48(DX)(DI*8), X11                                                 \
+    MOVOU   64(DX)(DI*8), X12                                                 \
+    MOVOU   80(DX)(DI*8), X13                                                 \
+    MOVOU   96(DX)(DI*8), X14                                                 \
+    MOVOU   112(DX)(DI*8), X15                                                \
     SSE_BO  X8,  X0                                                           \
     SSE_BO  X9,  X1                                                           \
     SSE_BO  X10, X2                                                           \
@@ -116,29 +120,20 @@ _128ByteLoop:                                                                 \
     SSE_BO  X14, X6                                                           \
     SSE_BO  X15, X7                                                           \
     MOVOU   X0, (AX)(DI*8)                                                    \
-    MOVOU   X1, 8(AX)(DI*8)                                                   \
-    MOVOU   X2, 16(AX)(DI*8)                                                  \
-    MOVOU   X3, 24(AX)(DI*8)                                                  \
-    MOVOU   X4, 32(AX)(DI*8)                                                  \
-    MOVOU   X5, 40(AX)(DI*8)                                                  \
-    MOVOU   X6, 48(AX)(DI*8)                                                  \
-    MOVOU   X7, 56(AX)(DI*8)                                                  \
+    MOVOU   X1, 16(AX)(DI*8)                                                  \
+    MOVOU   X2, 32(AX)(DI*8)                                                  \
+    MOVOU   X3, 48(AX)(DI*8)                                                  \
+    MOVOU   X4, 64(AX)(DI*8)                                                  \
+    MOVOU   X5, 80(AX)(DI*8)                                                  \
+    MOVOU   X6, 96(AX)(DI*8)                                                  \
+    MOVOU   X7, 112(AX)(DI*8)                                                 \
     ADDQ    $16, DI         /* i += 16 */                                     \
     SUBQ    $16, R8         /* j -= 16 */                                     \
     CMPQ    DI, CX          /* if (i != len(a)) */                            \
     JNE     _128ByteLoop    /* goto _128ByteLoop */                           \
                                                                               \
 _64BitLoop:                                                                   \
-    CMPQ    DI, CX          /* if (i == len(a)) */                            \
-    JEQ     end             /* goto _end */                                   \
-    MOVQ    (BX)(DI*8), SI  /* tmp := a[i] */                                 \
-    BITOP   (DX)(DI*8), SI  /* tmp = bitop(tmp, b[i]) */                      \
-    MOVQ    SI, (AX)(DI*8)  /* dest[i] = tmp */                               \
-    INCQ    DI              /* i++ */                                         \
-    JMP     _64BitLoop      /* goto _64BitLoop */                             \
-                                                                              \
-end:                                                                          \
-    RET
+    bitOpSliceGeneric(BITOP)
 
 TEXT ·andSliceAvx(SB),NOSPLIT,$0-72
     bitOpSliceAvx(ANDQ, VPAND)
@@ -159,6 +154,18 @@ TEXT ·xorSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(XORQ, XORPS)
 
 // TODO: create AVX version of this one
+#define notSliceGeneric()                                                     \
+_1:                                                                           \
+    CMPQ    DI, CX          /* if (i == len(a)) */                            \
+    JEQ     _end            /* goto _end */                                   \
+    MOVQ    (BX)(DI*8), SI  /* tmp := a[i] */                                 \
+    NOTQ    SI              /* tmp = ^tmp */                                  \
+    MOVQ    SI, (AX)(DI*8)  /* dest[i] = tmp */                               \
+    INCQ    DI              /* i++ */                                         \
+    JMP     _1              /* goto _1 */                                     \
+_end:                                                                         \
+    RET
+
 TEXT ·notSliceSse2(SB),NOSPLIT,$0-48
     MOVQ    dest_base+0(FP), AX                                     // &dest
     MOVQ    src_base+24(FP), BX                                     // &src
@@ -174,14 +181,14 @@ TEXT ·notSliceSse2(SB),NOSPLIT,$0-48
 _128ByteLoop:
     CMPQ    R8, $16                                                 // if (j < 16)
     JB      _64BitLoop                                              // goto _64BitLoop
-    MOVOU   (BX)(DI*8),   X0
-    MOVOU   8(BX)(DI*8),  X1
-    MOVOU   16(BX)(DI*8), X2
-    MOVOU   24(BX)(DI*8), X3
-    MOVOU   32(BX)(DI*8), X4
-    MOVOU   40(BX)(DI*8), X5
-    MOVOU   48(BX)(DI*8), X6
-    MOVOU   56(BX)(DI*8), X7
+    MOVOU   (BX)(DI*8),   X0                                                  
+    MOVOU   16(BX)(DI*8), X1
+    MOVOU   32(BX)(DI*8), X2
+    MOVOU   48(BX)(DI*8), X3
+    MOVOU   64(BX)(DI*8), X4
+    MOVOU   80(BX)(DI*8), X5
+    MOVOU   96(BX)(DI*8), X6
+    MOVOU   112(BX)(DI*8), X7
     XORPS   X8, X0
     XORPS   X8, X1
     XORPS   X8, X2
@@ -190,27 +197,19 @@ _128ByteLoop:
     XORPS   X8, X5
     XORPS   X8, X6
     XORPS   X8, X7
-    MOVOU   X0, (AX)(DI*8)
-    MOVOU   X1, 8(AX)(DI*8)
-    MOVOU   X2, 16(AX)(DI*8)
-    MOVOU   X3, 24(AX)(DI*8)
-    MOVOU   X4, 32(AX)(DI*8)
-    MOVOU   X5, 40(AX)(DI*8)
-    MOVOU   X6, 48(AX)(DI*8)
-    MOVOU   X7, 56(AX)(DI*8)
+    MOVOU   X0, (AX)(DI*8)                                                    
+    MOVOU   X1, 16(AX)(DI*8)
+    MOVOU   X2, 32(AX)(DI*8)
+    MOVOU   X3, 48(AX)(DI*8)
+    MOVOU   X4, 64(AX)(DI*8)
+    MOVOU   X5, 80(AX)(DI*8)
+    MOVOU   X6, 96(AX)(DI*8)
+    MOVOU   X7, 112(AX)(DI*8)
     ADDQ    $16, DI                                                 // i += 16
     SUBQ    $16, R8                                                 // j -= 16
     CMPQ    DI, CX                                                  // if (i != len(a))
     JNE     _128ByteLoop                                            // goto _128ByteLoop
 
 _64BitLoop:
-    CMPQ    DI, CX                                                  // if (i == len(a))
-    JEQ     end                                                     // goto end
-    MOVQ    (BX)(DI*8), SI                                          // tmp := src[i]
-    XORQ    $0xffffffffffffffff, SI                                 // tmp = ^tmp
-    MOVQ    SI, (AX)(DI*8)                                          // dest[i] = tmp
-    INCQ    DI                                                      // i++
-    JMP     _64BitLoop                                              // goto _64BitLoop
+    notSliceGeneric()
 
-end:
-    RET
