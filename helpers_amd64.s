@@ -8,12 +8,12 @@ TEXT ·hasPopCount(SB),NOSPLIT,$0
     MOVB    CX, ret+0(FP)
     RET
 
-TEXT ·hasAvx(SB),NOSPLIT,$0
-    MOVQ    $1, AX
+TEXT ·hasAvx2(SB),NOSPLIT,$0
+    MOVQ    $7, AX
     CPUID
-    SHRQ    $28, CX // AVX bit
-    ANDQ    $1, CX
-    MOVB    CX, ret+0(FP)
+    SHRQ    $5, BX // AVX2 bit
+    ANDQ    $1, BX
+    MOVB    BX, ret+0(FP)
     RET
 
 TEXT ·popcountSliceAsm(SB),NOSPLIT,$0-32
@@ -135,19 +135,19 @@ _128ByteLoop:                                                                 \
 _64BitLoop:                                                                   \
     bitOpSliceGeneric(BITOP)
 
-TEXT ·andSliceAvx(SB),NOSPLIT,$0-72
+TEXT ·andSliceAvx2(SB),NOSPLIT,$0-72
     bitOpSliceAvx(ANDQ, VPAND)
 
 TEXT ·andSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(ANDQ, ANDPS)
 
-TEXT ·orSliceAvx(SB),NOSPLIT,$0-72
+TEXT ·orSliceAvx2(SB),NOSPLIT,$0-72
     bitOpSliceAvx(ORQ, VPOR)
 
 TEXT ·orSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(ORQ, ORPS)
 
-TEXT ·xorSliceAvx(SB),NOSPLIT,$0-72
+TEXT ·xorSliceAvx2(SB),NOSPLIT,$0-72
     bitOpSliceAvx(XORQ, VPXOR)
 
 TEXT ·xorSliceSse2(SB),NOSPLIT,$0-72
@@ -212,7 +212,7 @@ _128ByteLoop:
 _64BitLoop:
     notSliceGeneric()
 
-TEXT ·notSliceAvx(SB),NOSPLIT,$0-48
+TEXT ·notSliceAvx2(SB),NOSPLIT,$0-48
     MOVQ    dest_base+0(FP), AX                                     // &dest
     MOVQ    src_base+24(FP), BX                                     // &src
     MOVQ    src_len+32(FP), CX                                      // len(src)
