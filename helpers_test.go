@@ -144,9 +144,9 @@ func BenchmarkBitOpSlice(b *testing.B) {
 	}
 	sliceLengths := []int{1, 10, 100, 1000, 10000}
 
-	for _, function := range functions {
-		for _, bitOpFn := range function.Funcs {
-			for _, sliceLength := range sliceLengths {
+	for _, sliceLength := range sliceLengths {
+		for _, function := range functions {
+			for _, bitOpFn := range function.Funcs {
 				b.Run(fmt.Sprintf("operator=%s/version=%s/length=%d", function.Operator, getFunctionName(bitOpFn), sliceLength), func(b *testing.B) {
 					b.StopTimer()
 
@@ -192,8 +192,8 @@ func TestNotSlice(t *testing.T) {
 func BenchmarkNotSlice(b *testing.B) {
 	sliceLengths := []int{1, 10, 100, 1000, 10000}
 
-	for _, notSliceFn := range notSliceVersions {
-		for _, sliceLength := range sliceLengths {
+	for _, sliceLength := range sliceLengths {
+		for _, notSliceFn := range notSliceVersions {
 			b.Run(fmt.Sprintf("version=%s/length=%d", getFunctionName(notSliceFn), sliceLength), func(b *testing.B) {
 				b.StopTimer()
 
