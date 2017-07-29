@@ -153,7 +153,6 @@ TEXT ·xorSliceAvx(SB),NOSPLIT,$0-72
 TEXT ·xorSliceSse2(SB),NOSPLIT,$0-72
     bitOpSliceSse2(XORQ, XORPS)
 
-// TODO: create AVX version of this one
 #define notSliceGeneric()                                                     \
 _1:                                                                           \
     CMPQ    DI, CX          /* if (i == len(a)) */                            \
@@ -213,3 +212,35 @@ _128ByteLoop:
 _64BitLoop:
     notSliceGeneric()
 
+TEXT ·notSliceAvx(SB),NOSPLIT,$0-48
+    MOVQ    dest_base+0(FP), AX                                     // &dest
+    MOVQ    src_base+24(FP), BX                                     // &src
+    MOVQ    src_len+32(FP), CX                                      // len(src)
+    MOVQ    $0, DI                                                  // var i = 0
+    MOVQ    CX, R8                                                  // var j = len(src)
+
+    // setup Y4 register
+    VPCMPEQB Y4, Y4, Y4
+
+_128ByteLoop:
+    CMPQ     R8, $16                                                 // if (j < 16)
+    JB       _64BitLoop                                              // goto _64BitLoop
+    VMOVDQU  (BX)(DI*8),   Y0
+    VMOVDQU  32(BX)(DI*8),  Y1
+    VMOVDQU  64(BX)(DI*8), Y2
+    VMOVDQU  96(BX)(DI*8), Y3
+    VPXOR    Y0, Y4, Y0
+    VPXOR    Y1, Y4, Y1
+    VPXOR    Y2, Y4, Y2
+    VPXOR    Y3, Y4, Y3
+    VMOVDQU  Y0, (AX)(DI*8)
+    VMOVDQU  Y1, 32(AX)(DI*8)
+    VMOVDQU  Y2, 64(AX)(DI*8)
+    VMOVDQU  Y3, 96(AX)(DI*8)
+    ADDQ     $16, DI                                                 // i += 16
+    SUBQ     $16, R8                                                 // j -= 16
+    CMPQ     DI, CX                                                  // if (i != len(a))
+    JNE      _128ByteLoop                                            // goto _128ByteLoop
+
+_64BitLoop:
+    notSliceGeneric()
