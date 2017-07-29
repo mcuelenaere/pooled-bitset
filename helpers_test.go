@@ -14,6 +14,14 @@ func getFunctionName(function interface{}) string {
 	return strings.Split(fn.Name(), ".")[1]
 }
 
+func generateSliceWithRandomData(sliceLength int) []uint64 {
+	output := make([]uint64, sliceLength)
+	for i := 0; i < sliceLength; i++ {
+		output[i] = uint64(rand.Uint32()) | (uint64(rand.Uint32()) << 32)
+	}
+	return output
+}
+
 func TestPopCountSlice(t *testing.T) {
 	testCases := []struct {
 		Input    []uint64
@@ -43,11 +51,7 @@ func TestPopCountSlice(t *testing.T) {
 }
 
 func BenchmarkPopCountSlice(b *testing.B) {
-	// generate slice containing increasing numbers
-	slice := make([]uint64, 8192*10)
-	for n := 0; n < len(slice); n++ {
-		slice[n] = uint64(n)
-	}
+	slice := generateSliceWithRandomData(8192*10)
 
 	for _, popcountFn := range popcountSliceVersions {
 		b.Run(fmt.Sprintf("version=%s", getFunctionName(popcountFn)), func(b *testing.B) {
@@ -147,14 +151,8 @@ func BenchmarkBitOpSlice(b *testing.B) {
 					b.StopTimer()
 
 					output := make([]uint64, sliceLength)
-					sliceA := make([]uint64, sliceLength)
-					sliceB := make([]uint64, sliceLength)
-
-					// fill input with random values
-					for i := 0; i < sliceLength; i++ {
-						sliceA[i] = uint64(rand.Uint32()) | (uint64(rand.Uint32()) << 32)
-						sliceB[i] = uint64(rand.Uint32()) | (uint64(rand.Uint32()) << 32)
-					}
+					sliceA := generateSliceWithRandomData(sliceLength)
+					sliceB := generateSliceWithRandomData(sliceLength)
 
 					b.StartTimer()
 
@@ -200,12 +198,7 @@ func BenchmarkNotSlice(b *testing.B) {
 				b.StopTimer()
 
 				output := make([]uint64, sliceLength)
-				input := make([]uint64, sliceLength)
-
-				// fill input with random values
-				for i := 0; i < sliceLength; i++ {
-					input[i] = uint64(rand.Uint32()) | (uint64(rand.Uint32()) << 32)
-				}
+				input := generateSliceWithRandomData(sliceLength)
 
 				b.StartTimer()
 
