@@ -6,7 +6,13 @@ import (
 	"reflect"
 	"runtime"
 	"testing"
+	"strings"
 )
+
+func getFunctionName(function interface{}) string {
+	fn := runtime.FuncForPC(reflect.ValueOf(function).Pointer())
+	return strings.Split(fn.Name(), ".")[1]
+}
 
 func TestPopCountSlice(t *testing.T) {
 	testCases := []struct {
@@ -25,14 +31,14 @@ func TestPopCountSlice(t *testing.T) {
 	}
 
 	for idx, testCase := range testCases {
-		t.Run(fmt.Sprintf("version=generic/index=%d", idx), func (t *testing.T) {
+		t.Run(fmt.Sprintf("version=popcountSliceGeneric/index=%d", idx), func (t *testing.T) {
 			output := popcountSliceGeneric(testCase.Input)
 			if output != testCase.Expected {
 				t.Errorf("popCountSliceGeneric() gave %d instead of expected %d for input 0x%x", output, testCase.Expected, testCase.Input)
 			}
 		})
 
-		t.Run(fmt.Sprintf("version=asm/index=%d", idx), func (t *testing.T) {
+		t.Run(fmt.Sprintf("version=%s/index=%d", getFunctionName(popcountSlice), idx), func (t *testing.T) {
 			output := popcountSlice(testCase.Input)
 			if output != testCase.Expected {
 				t.Errorf("popcountSliceAsm() gave %d instead of expected %d for input 0x%x", output, testCase.Expected, testCase.Input)
@@ -51,14 +57,14 @@ func BenchmarkPopCountSlice(b *testing.B) {
 		slice[n] = uint64(n)
 	}
 
-	b.Run("version=generic", func (b *testing.B) {
+	b.Run("version=popcountSliceGeneric", func (b *testing.B) {
 		b.ResetTimer()
 		for n := 0; n < b.N; n++ {
 			indirectPopCountSliceGeneric(slice)
 		}
 	})
 
-	b.Run("version=asm", func (b *testing.B) {
+	b.Run(fmt.Sprintf("version=%s", getFunctionName(popcountSlice)), func (b *testing.B) {
 		b.ResetTimer()
 		for n := 0; n < b.N; n++ {
 			popcountSlice(slice)
@@ -80,14 +86,14 @@ func TestFindFirstSetBit(t *testing.T) {
 	}
 
 	for idx, testCase := range testCases {
-		t.Run(fmt.Sprintf("version=generic/index=%d", idx), func (t *testing.T) {
+		t.Run(fmt.Sprintf("version=findFirstSetBitGeneric/index=%d", idx), func (t *testing.T) {
 			output := findFirstSetBitGeneric(testCase.Input)
 			if output != testCase.Expected {
 				t.Errorf("findFirstSetBitGeneric() gave %d instead of expected %d for input 0x%x", output, testCase.Expected, testCase.Input)
 			}
 		})
 
-		t.Run(fmt.Sprintf("version=asm/index=%d", idx), func (t *testing.T) {
+		t.Run(fmt.Sprintf("version=%s/index=%d", getFunctionName(findFirstSetBit), idx), func (t *testing.T) {
 			output := findFirstSetBit(testCase.Input)
 			if output != testCase.Expected {
 				t.Errorf("findFirstSetBitAsm() gave %d instead of expected %d for input 0x%x", output, testCase.Expected, testCase.Input)
@@ -106,7 +112,7 @@ func BenchmarkFindFirstSetBit(b *testing.B) {
 		}
 	})
 
-	b.Run("version=asm", func (b *testing.B) {
+	b.Run(fmt.Sprintf("version=%s", getFunctionName(findFirstSetBit)), func (b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			findFirstSetBit(0x12345678)
 		}
@@ -117,15 +123,14 @@ func BenchmarkFindFirstSetBit(b *testing.B) {
 func TestBitOpSlice(t *testing.T) {
 	configurations := []struct {
 		Operator string
-		Version string
 		Func func(dest, a, b []uint64)
 	}{
-		{"AND", "generic", andSliceGeneric},
-		{"AND", "asm", andSlice},
-		{"OR", "generic", orSliceGeneric},
-		{"OR", "asm", orSlice},
-		{"XOR", "generic", xorSliceGeneric},
-		{"XOR", "asm", xorSlice},
+		{"AND", andSliceGeneric},
+		{"AND", andSlice},
+		{"OR", orSliceGeneric},
+		{"OR", orSlice},
+		{"XOR", xorSliceGeneric},
+		{"XOR", xorSlice},
 	}
 
 	testCases := []struct {
@@ -140,12 +145,12 @@ func TestBitOpSlice(t *testing.T) {
 
 	for _, configuration := range configurations {
 		for idx, testCase := range testCases {
-			t.Run(fmt.Sprintf("operator=%s/version=%s/index=%d", configuration.Operator, configuration.Version, idx), func(t *testing.T) {
+			t.Run(fmt.Sprintf("operator=%s/version=%s/index=%d", configuration.Operator, getFunctionName(configuration.Func), idx), func(t *testing.T) {
 				output := make([]uint64, len(testCase.InputA))
 				expected := testCase.Expected[configuration.Operator]
 				configuration.Func(output, testCase.InputA, testCase.InputB)
 				if !reflect.DeepEqual(output, expected) {
-					t.Errorf("%s gave %v instead of expected %v for inputs %v and %v", runtime.FuncForPC(reflect.ValueOf(configuration.Func).Pointer()).Name(), output, expected, testCase.InputA, testCase.InputB)
+					t.Errorf("%s gave %v instead of expected %v for inputs %v and %v", getFunctionName(configuration.Func), output, expected, testCase.InputA, testCase.InputB)
 				}
 			})
 		}
@@ -155,21 +160,20 @@ func TestBitOpSlice(t *testing.T) {
 func BenchmarkBitOpSlice(b *testing.B) {
 	functions := []struct {
 		Operator string
-		Version string
 		Func func(dest, a, b []uint64)
 	}{
-		{"AND", "generic", andSliceGeneric},
-		{"AND", "asm", andSlice},
-		{"OR", "generic", orSliceGeneric},
-		{"OR", "asm", orSlice},
-		{"XOR", "generic", xorSliceGeneric},
-		{"XOR", "asm", xorSlice},
+		{"AND", andSliceGeneric},
+		{"AND", andSlice},
+		{"OR", orSliceGeneric},
+		{"OR", orSlice},
+		{"XOR", xorSliceGeneric},
+		{"XOR", xorSlice},
 	}
 	sliceLengths := []int{1, 10, 100, 1000, 10000}
 
 	for _, function := range functions {
 		for _, sliceLength := range sliceLengths {
-			b.Run(fmt.Sprintf("operator=%s/version=%s/length=%d", function.Operator, function.Version, sliceLength), func(b *testing.B) {
+			b.Run(fmt.Sprintf("operator=%s/version=%s/length=%d", function.Operator, getFunctionName(function.Func), sliceLength), func(b *testing.B) {
 				b.StopTimer()
 
 				output := make([]uint64, sliceLength)
@@ -212,7 +216,7 @@ func TestNotSlice(t *testing.T) {
 			}
 		})
 
-		t.Run(fmt.Sprintf("version=asm/index=%d", idx), func(t *testing.T) {
+		t.Run(fmt.Sprintf("version=%s/index=%d", getFunctionName(notSlice), idx), func(t *testing.T) {
 			output := make([]uint64, len(testCase.Input))
 			notSlice(output, testCase.Input)
 			if !reflect.DeepEqual(output, testCase.Expected) {
@@ -223,18 +227,12 @@ func TestNotSlice(t *testing.T) {
 }
 
 func BenchmarkNotSlice(b *testing.B) {
-	functions := []struct {
-		Version string
-		Func func(dest, src []uint64)
-	}{
-		{"generic", notSliceGeneric},
-		{"asm", notSlice},
-	}
+	functions := []func(dest, src []uint64) {notSliceGeneric, notSlice}
 	sliceLengths := []int{1, 10, 100, 1000, 10000}
 
 	for _, function := range functions {
 		for _, sliceLength := range sliceLengths {
-			b.Run(fmt.Sprintf("version=%s/length=%d", function.Version, sliceLength), func(b *testing.B) {
+			b.Run(fmt.Sprintf("version=%s/length=%d", getFunctionName(function), sliceLength), func(b *testing.B) {
 				b.StopTimer()
 
 				output := make([]uint64, sliceLength)
@@ -249,7 +247,7 @@ func BenchmarkNotSlice(b *testing.B) {
 
 				// run benchmark
 				for n := 0; n < b.N; n++ {
-					function.Func(output, input)
+					function(output, input)
 				}
 			})
 		}
