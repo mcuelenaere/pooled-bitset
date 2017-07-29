@@ -7,6 +7,14 @@ var (
 	orSlice         func(dest, a, b []uint64)
 	xorSlice        func(dest, a, b []uint64)
 	notSlice        func(dest, src []uint64)
+
+	// used for testing purposes only
+	popcountSliceVersions   []func([]uint64) uint64
+	findFirstSetBitVersions []func(uint64) uint64
+	andSliceVersions        []func(dest, a, b []uint64)
+	orSliceVersions         []func(dest, a, b []uint64)
+	xorSliceVersions        []func(dest, a, b []uint64)
+	notSliceVersions        []func(dest, src []uint64)
 )
 
 // bit population count, take from
